@@ -1,1 +1,1 @@
-# measurable.energy
+# mnist-model
