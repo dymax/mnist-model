@@ -19,7 +19,7 @@ from hyperopt import hp
 
 from mnist_model.data_loader import load_data
 from mnist_model.model import SimpleModel
-from mnist_model.utiles import normalize_pixels
+from mnist_model.utils import normalize_pixels
 
 logging.basicConfig(level=logging.INFO)
 
