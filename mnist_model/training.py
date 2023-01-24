@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
+import tempfile
 from typing import Tuple
 from functools import partial
 import tensorflow as tf
 import numpy as np
-
+tmpdir = tempfile.mkdtemp()
 
 import mlflow
 from hyperopt import fmin, tpe, STATUS_OK, Trials
@@ -101,9 +102,13 @@ def objective(params,
             metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
         )
         model.fit(ds_train,
-                  epochs=2,
+                  epochs=1,
                   validation_data=ds_test,
                   verbose=1)
+        model_save_path = os.path.join(OUTPUT_PATH, "model")
+        #print(model_save_path)
+        model.save(model_save_path)
+        #mlflow.tensorflow.save_model(model, model_save_path)
 
         # log parameters from search space into mlflow
         mlflow.log_params(params)
