@@ -1,19 +1,25 @@
 import logging
 import os
 from pathlib import Path
-import tempfile
 from typing import Tuple, Dict, List, Union
 from functools import partial
-import tensorflow as tf
 import numpy as np
-tmpdir = tempfile.mkdtemp()
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+# Load TensorFlow
+import tensorflow as tf
+
+# Load mlflow tracking tools
 import mlflow
+
+# Load hyperopt for hyperparameter search
 from hyperopt import fmin, tpe, STATUS_OK, Trials
 from hyperopt import hp
 
 from mnist_model.data_loader import load_data
 from mnist_model.model import SimpleModel
+from mnist_model.utiles import normalize_pixels
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,31 +32,8 @@ mlflow.set_tracking_uri(f"sqlite:///{OUTPUT_PATH}/meas-energy-mlflow.db")
 
 tf.get_logger().setLevel('ERROR')
 
-
-tf.get_logger().setLevel('ERROR')
 SEED = 100
 tf.random.set_seed(SEED)
-
-
-def de_serialise(ds: tf.data.Dataset) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Convert the tf.data.Data object of image and label to numpy array.
-    :param ds: A tf.data.Data object slice from (image, label).
-    :return: A tuple of:
-            - x: a numpy array of input image.
-            - y: a numpy array of labels.
-    """
-    x, y = tf.data.Dataset.get_single_element(ds.batch(len(ds)))
-    x = x.numpy()  # image
-    y = y.numpy()  # labels
-    return x, y
-
-
-def normalize_pixels(image, label):
-    """
-    Normalizes images and convert to `float32`.
-    """
-    return tf.cast(image, tf.float32) / 255., label
 
 
 def train_eval_pipeline() -> Tuple[tf.data.Dataset, tf.data.Dataset, Dict[str, int]]:
@@ -106,31 +89,43 @@ def training_job(save_model_path: str = MODEL_PATH,
     num_labels = data_info["num_labels"]
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="../logs")
-    # Call the model
-    model = SimpleModel(image_shape, dropout_rate, num_units, num_labels)
-    # Compile the model
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),  # set the logits to False
-        metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
-    )
-    # Fit the model and get the history
-    history = model.fit(
-        ds_train,
-        epochs=num_epochs,
-        validation_data=ds_test,
-        verbose=1,
-        callbacks=[tensorboard_callback]
-    )
+    # Define mlflow experiment name
+    mlflow_experiment_name = f"model-training"
+    # Setup mlflow experiment
+    exp = mlflow.get_experiment_by_name(name=mlflow_experiment_name)
+    if not exp:
+        experiment_id = mlflow.create_experiment(name=mlflow_experiment_name,
+                                                 artifact_location=f"{OUTPUT_PATH}/mlruns")
+    else:
+        experiment_id = exp.experiment_id
+    with mlflow.start_run(experiment_id=experiment_id, run_name=mlflow_experiment_name, nested=True):
+
+        # Autolog the tensorflow model during the training
+        mlflow.tensorflow.autolog(every_n_iter=2)
+
+        model = SimpleModel(image_shape, dropout_rate, num_units, num_labels)
+        # Compile the model
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),  # set the logits to False
+            metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+        )
+        # Fit the model and get the history
+        history = model.fit(
+            ds_train,
+            epochs=num_epochs,
+            validation_data=ds_test,
+            verbose=1,
+            callbacks=[tensorboard_callback]
+        )
     # Evaluate the model on the test dataset
     metrics = model.evaluate(ds_test)
 
     # Print the evaluation results
     logging.info(f"Test Loss: {metrics[0]}")
     logging.info(f"Test Accuracy: {metrics[1]}")
-
+    # Save model
     model.save(save_model_path)
-    #loaded_model = tf.keras.models.load_model(os.path.join(OUTPUT_PATH, "trained_model", "model"))
     return model, history
 
 
@@ -158,7 +153,6 @@ def objective(params: Dict[str, Union[int, float]],
                                                  artifact_location=f"{OUTPUT_PATH}/mlruns")
     else:
         experiment_id = exp.experiment_id
-    #mlflow.set_experiment(mlflow_experiment_name)
     with mlflow.start_run(experiment_id=experiment_id, run_name=mlflow_experiment_name, nested=True):
         # Autolog the tensorflow model during the training
         mlflow.tensorflow.autolog(every_n_iter=2)
@@ -215,5 +209,5 @@ def run_hyper_search(max_eval: int, num_epochs: int):
 
 
 if __name__ == "__main__":
-    #training_job(num_epochs=2)
-    run_hyper_search(max_eval=1, num_epochs=1)
+    training_job(num_epochs=10)
+    run_hyper_search(max_eval=10, num_epochs=10)
