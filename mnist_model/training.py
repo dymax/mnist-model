@@ -10,7 +10,6 @@ tmpdir = tempfile.mkdtemp()
 import mlflow
 from hyperopt import fmin, tpe, STATUS_OK, Trials
 from hyperopt import hp
-from hyperopt.pyll import scope
 
 from mnist_model.data_loader import load_data
 from mnist_model.model import SimpleModel
