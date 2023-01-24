@@ -4,6 +4,7 @@ matplotlib==3.6.3
 tensorboard==2.11.2
 mlflow==1.30.0
 hyperopt==0.2.7
+mlflow[extras]
 
 
 
