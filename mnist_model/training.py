@@ -1,7 +1,8 @@
+import logging
 import os
 from pathlib import Path
 import tempfile
-from typing import Tuple
+from typing import Tuple, Dict, List, Union
 from functools import partial
 import tensorflow as tf
 import numpy as np
@@ -14,138 +15,195 @@ from hyperopt import hp
 from mnist_model.data_loader import load_data
 from mnist_model.model import SimpleModel
 
-OUTPUT_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'outputs')
+logging.basicConfig(level=logging.INFO)
 
+
+OUTPUT_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'outputs')
+MODEL_PATH = os.path.join(OUTPUT_PATH, "trained_model", "model")
 
 # from terminal run mlflow ui --backend-store-uri sqlite:///meas-energy-mlflow.db
 mlflow.set_tracking_uri(f"sqlite:///{OUTPUT_PATH}/meas-energy-mlflow.db")
 
+tf.get_logger().setLevel('ERROR')
+
+
+tf.get_logger().setLevel('ERROR')
 SEED = 100
 tf.random.set_seed(SEED)
 
 
+def de_serialise(ds: tf.data.Dataset) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Convert the tf.data.Data object of image and label to numpy array.
+    :param ds: A tf.data.Data object slice from (image, label).
+    :return: A tuple of:
+            - x: a numpy array of input image.
+            - y: a numpy array of labels.
+    """
+    x, y = tf.data.Dataset.get_single_element(ds.batch(len(ds)))
+    x = x.numpy()  # image
+    y = y.numpy()  # labels
+    return x, y
+
+
 def normalize_pixels(image, label):
     """
-  Normalizes images and convert to `float32`.
-  """
+    Normalizes images and convert to `float32`.
+    """
     return tf.cast(image, tf.float32) / 255., label
 
 
-def prepare_dataset():
+def train_eval_pipeline() -> Tuple[tf.data.Dataset, tf.data.Dataset, Dict[str, int]]:
+    """
+    Load train and test datasets from data loader and create a pipeline that contains:
+      - normalise the data
+      - fit the dataset in memory, cache it before shuffling for a better performance.
+      - shuffle dataset.
+      - Batch elements of the dataset after shuffling to get unique batches at each epoch.
+    :return: prepared train and test dataset and data info.
+    """
+    # Load data from data loader
     dataset, data_info = load_data()
+    # Normalise the train dataset
     ds_train = dataset["train"].map(normalize_pixels)
+    # Normalise test dataset
     ds_test = dataset["test"].map(normalize_pixels)
-    return ds_train, ds_test, data_info
-
-
-def split_dataset(ds_train, ds_test, num_training_samples):
+    # Cache train data before shuffling for a better performance.
     ds_train = ds_train.cache()
-    ds_train = ds_train.shuffle(num_training_samples, seed=SEED)
+    # Shuffle train dataset
+    ds_train = ds_train.shuffle(data_info["num_labels"], seed=SEED)
+    # Batch train dataset after shuffling to get unique batches at each epoch.
     ds_train = ds_train.batch(128)
     ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
+    # Batch test dataset to get unique batches at each epoch.
     ds_test = ds_test.batch(128)
+    # Cache test data before shuffling for a better performance.
     ds_test = ds_test.cache()
     ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
-    return ds_train, ds_test
+    return ds_train, ds_test, data_info
 
 
-def training_job(dropout_rate: float = 0.3,
-                 num_units: int = 128):
-    ds_train, ds_test, data_info = prepare_dataset()
-    num_training_samples = data_info['train']["num_samples"]
-    ds_train, ds_test = split_dataset(ds_train, ds_test, num_training_samples)
+def training_job(save_model_path: str = MODEL_PATH,
+                 dropout_rate: float = 0.3,
+                 learning_rate: float = 0.001,
+                 num_units: int = 128,
+                 num_epochs: int = 10) -> Tuple[SimpleModel, Dict[str, List[float]]]:
+    """
+    Train and eval model.
+    :param save_model_path: path to save the trained model.
+    :param dropout_rate: drop out rate.
+    :param learning_rate: learning rate.
+    :param num_units: number of neurons/units of the network layer.
+    :param num_epochs: number of epochs
+    :return: A tuple:
+             - model: A trained model.
+             - history: history of the loss and accuracy for train and eval data
+                        during model fitting.
+    """
+    ds_train, ds_test, data_info = train_eval_pipeline()
+    image_shape = data_info['train']["shape"]
+    num_labels = data_info["num_labels"]
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="../logs")
     # Call the model
-    model = SimpleModel((28, 28), 0.3, 128, 10)
+    model = SimpleModel(image_shape, dropout_rate, num_units, num_labels)
+    # Compile the model
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),  # set the logits to False
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
     )
-
+    # Fit the model and get the history
     history = model.fit(
         ds_train,
-        epochs=6,
+        epochs=num_epochs,
         validation_data=ds_test,
         verbose=1,
         callbacks=[tensorboard_callback]
     )
     # Evaluate the model on the test dataset
     metrics = model.evaluate(ds_test)
+
     # Print the evaluation results
-    print("Test Loss:", metrics[0])
-    print("Test Accuracy:", metrics[1])
+    logging.info(f"Test Loss: {metrics[0]}")
+    logging.info(f"Test Accuracy: {metrics[1]}")
+
+    model.save(save_model_path)
+    #loaded_model = tf.keras.models.load_model(os.path.join(OUTPUT_PATH, "trained_model", "model"))
+    return model, history
 
 
-def get_train_test_data():
-    ds_train, ds_test, data_info = prepare_dataset()
-    num_training_samples = data_info['train']["num_samples"]
-    ds_train, ds_test = split_dataset(ds_train, ds_test, num_training_samples)
-    return ds_train, ds_test
-
-
-def objective(params,
-              ds_train,
-              ds_test):
-    # define mlflow experiment name
+def objective(params: Dict[str, Union[int, float]],
+              ds_train: tf.data.Dataset,
+              ds_test: tf.data.Dataset,
+              num_epochs: int) -> Dict[str, Union[str, float]]:
+    """
+    Objective function that will be used to minimise the loss during the training process.
+    :param params: a dictionary of parameters that will be used to compute the loss.
+    :param ds_train: training datasett.
+    :param ds_test: testing dataset
+    :param num_epochs: number of epoch to train the model.
+    :return: A data dictionary:
+            - loss:  a float value that attempting to minimise
+            - status: Status of completion; ok' for successful completion, and 'fail' in cases where the function turned
+                      out to be undefined.
+    """
+    # Define mlflow experiment name
     mlflow_experiment_name = f"model-hyper-search"
-    # setup mlflow experiment
-    mlflow.set_experiment(mlflow_experiment_name)
-    with mlflow.start_run(run_name=mlflow_experiment_name, nested=True):
-        model = SimpleModel((28, 28), params['dropout_rate'], params['num_units'], 10)
+    # Setup mlflow experiment
+    exp = mlflow.get_experiment_by_name(name=mlflow_experiment_name)
+    if not exp:
+        experiment_id = mlflow.create_experiment(name=mlflow_experiment_name,
+                                                 artifact_location=f"{OUTPUT_PATH}/mlruns")
+    else:
+        experiment_id = exp.experiment_id
+    #mlflow.set_experiment(mlflow_experiment_name)
+    with mlflow.start_run(experiment_id=experiment_id, run_name=mlflow_experiment_name, nested=True):
+        # Autolog the tensorflow model during the training
+        mlflow.tensorflow.autolog(every_n_iter=2)
+
+        model = SimpleModel(image_shape=(28, 28),
+                            dropout_rate=params['dropout_rate'],
+                            num_units=params['num_units'],
+                            num_labels=10)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=params['learning_rate']),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
             metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
         )
         model.fit(ds_train,
-                  epochs=1,
+                  epochs=num_epochs,
                   validation_data=ds_test,
+                  batch_size=128,
                   verbose=1)
-        model_save_path = os.path.join(OUTPUT_PATH, "model")
-        #print(model_save_path)
-        model.save(model_save_path)
-        #mlflow.tensorflow.save_model(model, model_save_path)
 
-        # log parameters from search space into mlflow
-        mlflow.log_params(params)
-
-        train_metrics = model.evaluate(ds_train)
-        mlflow.log_metric("Train Accuracy", train_metrics[1])
-        mlflow.log_metric("Train Loss", train_metrics[0])
-
+        # Get loss from eval model, the loss will be minimised by objective function
         eval_metrics = model.evaluate(ds_test)
-        mlflow.log_metric("Val Accuracy", eval_metrics[1])
-        mlflow.log_metric("Val Loss", eval_metrics[0])
 
     return {'loss': eval_metrics[0], 'status': STATUS_OK}
 
 
-def de_serialise(ds):
-    def extract_x_y(x, y):
-        return x, y
-    ds_train = ds.map(extract_x_y)
-    for x_i, y_i in ds_train:
-        x = x_i
-        y = y_i
-    return x, y
-
-
-def run_hyper_search(max_eval: int = 10):
-    ds_train, ds_test = get_train_test_data()
-    # Define the search space
+def run_hyper_search(max_eval: int, num_epochs: int):
+    """
+    Run hyperparameter search space to find the optimal set of parameters.
+    :param max_eval: Maximum number of iteration to run the search space.
+    :param num_epochs: number of epoch to train the model.
+    :return: Result of search space
+    """
+    ds_train, ds_test, data_info = train_eval_pipeline()
+    # Define the search space. This is only used for the purpose of the demo.
+    # Only learning rate, dropout ratio and number of neurons considered as hyperparameter
     params = {'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(0.1)),
-               'num_units': hp.quniform('num_units', 16, 256, 16),
-               'dropout_rate': hp.uniform('dropout_rate', 0.0, 0.5)}
-    x_train, y_train = de_serialise(ds_train)
-    x_test, y_test = de_serialise(ds_test)
+              'num_units': hp.quniform('num_units', 16, 256, 16),
+              'dropout_rate': hp.uniform('dropout_rate', 0.0, 0.5)}
+    # Create the objective function that wants to be minimised
     obj = partial(objective,
                   ds_train=ds_train,
-                  ds_test=ds_test)
+                  ds_test=ds_test,
+                  num_epochs=num_epochs)
 
-    # minimize the objective over the space
+    # Minimise the objective over the space
     result = fmin(
         fn=obj,
         space=params,
@@ -157,5 +215,5 @@ def run_hyper_search(max_eval: int = 10):
 
 
 if __name__ == "__main__":
-    #training_job()
-    run_hyper_search()
+    #training_job(num_epochs=2)
+    run_hyper_search(max_eval=1, num_epochs=1)
