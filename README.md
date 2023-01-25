@@ -65,12 +65,11 @@ The provided script can perform two tasks:
 2. Perform a hyperparameter search using the Bayesian optimization method to find the optimal set of parameters. The specific parameter search space is defined in https://github.com/dymax/mnist-model/blob/b73599ef7b3faaacca46dbb7e858f754d91af4fc/mnist_model/training.py#L209.
 
 To utilize the script, please take the following steps:
-- Start __mlflow__ as the script is set up to use it for both training and hyperparameter search.
 - Navigate to the `mnist-model` repository and activate the virtual environment.
 - The script offers the ability to run both model training and hyperparameter search or either one separately through the --option flag:
- - Run only the hyperparameter search by using either `python -m mnist_model.training --option search` or `make search`.
- - Run only the model training by using either `python -m mnist_model.training --option train` or `make train`.
- - Run both the model training and hyperparameter search by using either `python -m mnist_model.training --option all` or `make train-search`.
+- Run only the hyperparameter search by using either `python -m mnist_model.training --option search` or `make search`.
+- Run only the model training by using either `python -m mnist_model.training --option train` or `make train`.
+- Run both the model training and hyperparameter search by using either `python -m mnist_model.training --option all` or `make train-search`.
 
 ## Run [predict.py](mnist_model/predict.py)
 The provided script aims to plot the confusion matrix and misclassification rate for the train and test datasets. It loads the trained model from outputs/trained_model and uses it to make predictions on the train and test datasets. Then it calculates the confusion matrix and misclassification rate. <br>
