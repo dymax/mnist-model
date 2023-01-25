@@ -86,7 +86,6 @@ def training_job(save_model_path: str = MODEL_PATH,
                  kernel_size_layers: tuple = (3, 3),
                  dropout_rate: float = 0.3,
                  learning_rate: float = 0.001,
-                 num_units: int = 128,
                  batch_size: int = 128,
                  num_epochs: int = 10) -> Tuple[SimpleModel, Dict[str, List[float]]]:
     """
@@ -97,7 +96,6 @@ def training_job(save_model_path: str = MODEL_PATH,
     :param: kernel_size_layers: kernel size for convent
     :param dropout_rate: drop out rate, default is 0.3.
     :param learning_rate: learning rate, default is 0.001.
-    :param num_units: number of neurons/units of the network layer, default is 128.
     :param batch_size: batch size for train and test dataset, default is set to 128.
     :param num_epochs: number of epochs, default is 10.
     :return: A tuple:
@@ -128,7 +126,6 @@ def training_job(save_model_path: str = MODEL_PATH,
                             num_filter_layer_2,
                             kernel_size_layers,
                             dropout_rate,
-                            num_units,
                             num_labels)
         # Compile the model
         model.compile(
@@ -193,12 +190,10 @@ def objective(params: Dict[str, Union[int, float]],
         # Autolog the tensorflow model during the training
         mlflow.tensorflow.autolog(every_n_iter=1)
         mlflow.log_param("dropout_rate", params['dropout_rate'])
-        mlflow.log_param("num_units", params['num_units'])
         mlflow.log_param("learning_rate", params['learning_rate'])
 
         model = SimpleModel(image_shape=image_shape,
                             dropout_rate=params['dropout_rate'],
-                            num_units=params['num_units'],
                             num_filter_layer_1=params['num_filter_layer_1'],
                             num_filter_layer_2=params['num_filter_layer_2'],
                             kernel_size_layers=kernel_size_layers,
@@ -235,7 +230,6 @@ def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int, kernel_siz
     # Define the search space. This is only used for the purpose of the demo.
     # Only learning rate, dropout ratio and number of neurons considered as hyperparameter
     params = {'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(0.1)),
-              'num_units': hp.quniform('num_units', 16, 512, 16),
               'dropout_rate': hp.uniform('dropout_rate', 0, 0.5),
               'num_filter_layer_1': hp.quniform('num_filter_layer_1', 16, 128, 16),
               'num_filter_layer_2': hp.quniform('num_filter_layer_2', 16, 128, 16),
@@ -275,15 +269,21 @@ if __name__ == "__main__":
     params["kernel_size_layers"] = ast.literal_eval(params["kernel_size_layers"])
     if args.option == 'all':
         # Run both training the model and do hyperparameter search
+        # Only train a model
         training_job(dropout_rate=params["dropout_rate"],
+                     num_filter_layer_1=params["num_filter_layer_1"],
+                     num_filter_layer_2=params["num_filter_layer_2"],
+                     kernel_size_layers=params["kernel_size_layers"],
                      learning_rate=params["learning_rate"],
-                     num_units=params["num_units"],
                      batch_size=params["batch_size"],
                      num_epochs=params["num_epochs"])
 
         run_hyper_search(max_eval=params["max_eval"],
                          num_epochs=params["num_epochs"],
-                         batch_size=params["batch_size"])
+                         batch_size=params["batch_size"],
+                         kernel_size_layers=params["kernel_size_layers"])
+
+
 
     elif args.option == 'train':
         # Only train a model
@@ -292,7 +292,6 @@ if __name__ == "__main__":
                      num_filter_layer_2=params["num_filter_layer_2"],
                      kernel_size_layers=params["kernel_size_layers"],
                      learning_rate=params["learning_rate"],
-                     num_units=params["num_units"],
                      batch_size=params["batch_size"],
                      num_epochs=params["num_epochs"])
 
