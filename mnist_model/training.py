@@ -7,6 +7,7 @@ This script performs the following tasks:
 """
 
 import argparse
+import ast
 import logging
 import os
 from pathlib import Path
@@ -80,6 +81,9 @@ def train_eval_pipeline(batch_size: int) -> Tuple[tf.data.Dataset, tf.data.Datas
 
 
 def training_job(save_model_path: str = MODEL_PATH,
+                 num_filter_layer_1: int = 32,
+                 num_filter_layer_2: int = 64,
+                 kernel_size_layers: tuple = (3, 3),
                  dropout_rate: float = 0.3,
                  learning_rate: float = 0.001,
                  num_units: int = 128,
@@ -88,6 +92,9 @@ def training_job(save_model_path: str = MODEL_PATH,
     """
     Train and eval model.
     :param save_model_path: path to save the trained model.
+    :param num_filter_layer_1: number of filter for layer 1 of ConvNet.
+    :param num_filter_layer_2: number of filter for layer 2 of ConvNet.
+    :param: kernel_size_layers: kernel size for convent
     :param dropout_rate: drop out rate, default is 0.3.
     :param learning_rate: learning rate, default is 0.001.
     :param num_units: number of neurons/units of the network layer, default is 128.
@@ -116,8 +123,13 @@ def training_job(save_model_path: str = MODEL_PATH,
 
         # Autolog the tensorflow model during the training
         mlflow.tensorflow.autolog(every_n_iter=1)
-
-        model = SimpleModel(image_shape, dropout_rate, num_units, num_labels)
+        model = SimpleModel(image_shape,
+                            num_filter_layer_1,
+                            num_filter_layer_2,
+                            kernel_size_layers,
+                            dropout_rate,
+                            num_units,
+                            num_labels)
         # Compile the model
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
@@ -148,6 +160,7 @@ def objective(params: Dict[str, Union[int, float]],
               ds_train: tf.data.Dataset,
               ds_test: tf.data.Dataset,
               batch_size: int,
+              kernel_size_layers: tuple,
               data_info: Dict,
               num_epochs: int) -> Dict[str, Union[str, float]]:
     """
@@ -156,6 +169,7 @@ def objective(params: Dict[str, Union[int, float]],
     :param ds_train: training dataset.
     :param ds_test: testing dataset.
     :param batch_size: batch size to fit the model.
+    :param: kernel_size_layers: kernel size for convent
     :param data_info: a data dictionary contains the information of dataset
     :param num_epochs: number of epoch to train the model.
     :return: A data dictionary:
@@ -185,7 +199,12 @@ def objective(params: Dict[str, Union[int, float]],
         model = SimpleModel(image_shape=image_shape,
                             dropout_rate=params['dropout_rate'],
                             num_units=params['num_units'],
+                            num_filter_layer_1=params['num_filter_layer_1'],
+                            num_filter_layer_2=params['num_filter_layer_2'],
+                            kernel_size_layers=kernel_size_layers,
                             num_labels=num_labels)
+
+
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=params['learning_rate']),
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
@@ -203,12 +222,13 @@ def objective(params: Dict[str, Union[int, float]],
     return {'loss': eval_metrics[0], 'status': STATUS_OK}
 
 
-def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int):
+def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int, kernel_size_layers: Tuple[int, int]):
     """
     Run hyperparameter search space to find the optimal set of parameters.
     :param max_eval: Maximum number of iteration to run the search space.
     :param num_epochs: number of epoch to train the model.
     :param batch_size: batch size for fitting the model.
+    :param: kernel_size_layers: kernel size for convent.
     :return: Result of search space
     """
     ds_train, ds_test, data_info = train_eval_pipeline(batch_size)
@@ -216,12 +236,16 @@ def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int):
     # Only learning rate, dropout ratio and number of neurons considered as hyperparameter
     params = {'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(0.1)),
               'num_units': hp.quniform('num_units', 16, 512, 16),
-              'dropout_rate': hp.uniform('dropout_rate', 0, 0.5)}
+              'dropout_rate': hp.uniform('dropout_rate', 0, 0.5),
+              'num_filter_layer_1': hp.quniform('num_filter_layer_1', 16, 128, 16),
+              'num_filter_layer_2': hp.quniform('num_filter_layer_2', 16, 128, 16),
+              }
     # Create the objective function that wants to be minimised
     obj = partial(objective,
                   ds_train=ds_train,
                   ds_test=ds_test,
                   batch_size=batch_size,
+                  kernel_size_layers=kernel_size_layers,
                   data_info=data_info,
                   num_epochs=num_epochs)
 
@@ -247,7 +271,8 @@ if __name__ == "__main__":
                                                                   - 'search' only hyperparameter search""")
 
     args = parser.parse_args()
-    print(args)
+
+    params["kernel_size_layers"] = ast.literal_eval(params["kernel_size_layers"])
     if args.option == 'all':
         # Run both training the model and do hyperparameter search
         training_job(dropout_rate=params["dropout_rate"],
@@ -263,6 +288,9 @@ if __name__ == "__main__":
     elif args.option == 'train':
         # Only train a model
         training_job(dropout_rate=params["dropout_rate"],
+                     num_filter_layer_1=params["num_filter_layer_1"],
+                     num_filter_layer_2=params["num_filter_layer_2"],
+                     kernel_size_layers=params["kernel_size_layers"],
                      learning_rate=params["learning_rate"],
                      num_units=params["num_units"],
                      batch_size=params["batch_size"],
@@ -272,7 +300,8 @@ if __name__ == "__main__":
         # Only perform hyperparameter search
         run_hyper_search(max_eval=params["max_eval"],
                          num_epochs=params["num_epochs"],
-                         batch_size=params["batch_size"])
+                         batch_size=params["batch_size"],
+                         kernel_size_layers=params["kernel_size_layers"])
 
 
 
