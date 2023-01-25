@@ -51,8 +51,10 @@ class SimpleModel(tf.keras.Model):
 
     def get_config(self):
         return {"image_shape": self.image_shape,
+                "num_filter_layer_1": self.num_filter1,
+                "num_filter_layer_2": self.num_filter2,
+                "kernel_size_layers": self.kernel_size_layers,
                 "dropout_rate": self.dropout_rate,
-                "num_units": self.num_units,
                 "num_labels": self.num_labels}
 
     @classmethod
