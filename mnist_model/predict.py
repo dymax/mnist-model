@@ -3,7 +3,6 @@ from typing import List, Tuple
 from pathlib import Path
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-
 import tensorflow as tf
 
 from mnist_model.data_loader import convert_data_to_tf_dataset
@@ -37,7 +36,7 @@ if __name__ == "__main__":
     y_train, y_train_pred = make_prediction(loaded_model_path=model_path, ds=dataset["train"])
     y_test, y_test_pred = make_prediction(loaded_model_path=model_path, ds=dataset["test"])
 
-    plot_confusion_matrix(y_train, y_train_pred, class_names)
-    plot_confusion_matrix(y_test, y_test_pred, class_names)
-    plot_misclassified_rate(y_train, y_train_pred, class_names)
-    plot_misclassified_rate(y_test, y_test_pred, class_names)
+    plot_confusion_matrix(y_train, y_train_pred, class_names, plot_tag='Train')
+    plot_confusion_matrix(y_test, y_test_pred, class_names, plot_tag='Test')
+    plot_misclassified_rate(y_train, y_train_pred, class_names, plot_tag='Train')
+    plot_misclassified_rate(y_test, y_test_pred, class_names, plot_tag='Test')
