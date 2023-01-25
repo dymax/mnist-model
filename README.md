@@ -9,7 +9,7 @@ This repository contains the implementation of a Convolutional networks (2 layer
 [mnist_model/predict.py](mnist_model/predict.py): loads the trained model and makes predictions and plots confusion matrix and miscalssified samples. <br>
 [outputs/meas-energy-mlflow.db](outputs/meas-energy-mlflow.db): is a database containing information logged during training and hyperparameter search.. <br>
 [outputs/trained_model](outputs/trained_model): directory contains the trained model. <br>
-[configs/config_path.json](configs/config_path.json): contains path to data source, parameters and the location to get/store the mlflow tracking and the model.
+[configs/config_path.json](configs/config_path.json): contains path to data source.
 [configs/labels.json](configs/labels.json): contains class names mapped to integer representations. <br>
 [configs/config_hparams.json](configs/config_hparams.json): contains parameters used for training the model. <br>
 [requirement.txt](requirement.txt): is a list of requirements that must be installed to run the provided code.
@@ -55,12 +55,8 @@ Note: The model only provides the hyperparameter search for a few parameters for
 - `learning_rate`
 
 ## [configs/config_path.json](configs/config_path.json) Set up
-It should be set up by users according to their local machine to reflect the paths to:
+It should be set up by users according to their local machine to reflect the path to data source:
 - `DATA_PATH`: path to get the mnist data source.
-- `OUTPUT_PATH`: path to [outputs](outputs) folder.
-- `MODEL_PATH`: path to store the trained model.
-- `CONFIG_PARAMS_PATH`: path to [configs/config_hparams.json](configs/config_hparams.json).
-- `LABEL_PATH`: path to [configs/laebls.json](configs/labels.json).
 
 
 ## Run [training.py](mnist_model/training.py)
