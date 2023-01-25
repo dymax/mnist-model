@@ -2,10 +2,10 @@
 install:
 	pip install -r requirement.txt
 
-only-train-model:
+train:
 	python -m mnist_model.training --option train
 
-only-hyper-search:
+search:
 	python -m mnist_model.training --option search
 
 train-search:
