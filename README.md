@@ -36,15 +36,42 @@ Note: we can check whether the port 5000 is free or not by running the following
 lsof -i:5000
 ```
 ## Run [training.py](mnist_model/training.py)
-- Ensure the mlflow is running as the training and hyperparameter search has been set up with mlflow.
+The provided script can intend to provide two tasks
+1. train the model on the set of parameters that can be provided at [configs/config_hparams.json]. 
+2. perform hyperparameter search on the set of parameters that has defined https://github.com/dymax/mnist-model/blob/b73599ef7b3faaacca46dbb7e858f754d91af4fc/mnist_model/training.py#L209. The hyperparameter search uses bayesian optimisation method to search spaces for the optimal parameters. <br> </br>
+
+To run the script please follow the following steps:
+- Ensure the ___mlflow___ is running as the training and hyperparameter search has been set up with mlflow.
 - cd directory to `mnist-model` repo and activate the virtual environment.
 - The model training and hyperparameter search can be either run together or separately according to selected value for `--option` which accept three parameters:
   - Only runs the hyperparameter search by
-    - Either `python -m mnist_model.training --option search` or `make only-hyper-search` 
+    - Either `python -m mnist_model.training --option search` or `make search` 
   - Only runs the mode training
-    - Either `python -m mnist_model.training --option train` or `make only-train-model`
-  - Runs both model tranign and hyperparameter search by 
+    - Either `python -m mnist_model.training --option train` or `make train`
+  - Runs both model training and hyperparameter search by 
     - Either `python -m mnist_model.training --option all` or `make train-search`
+
+## Run [predict.py](mnist_model/predict.py)
+plot the confusion matrix and misclassified rate for eeach train and test dataset. The provided script loads the trained model from [outputs/trained_model](outputs/trained_model) and take predictions of the model from train and test dataset and then calculate the confusion matrix and misclassified rate . <br>
+To run the script please follow the following steps:
+- cd directory to `mnist-model` repo and activate the virtual environment.
+- run either of the following command to visualise the model performance:
+```option 1
+make predict
+```
+```option 2
+python -m mnist_model.predict
+```
+
+## Run makefile 
+The provided [Makefile](Makefile) contains set of command lines that can be used to execute the python provided scripts in more convenient way. The provided `Makefile` contains:
+- `make install` install all dependencies.
+- `make train` execute the [mnist_model/training.py](mnist_model/training.py) file on the mode on ___Only runs the model training___. <br>
+- `make search:` execute the [mnist_model/training.py](mnist_model/training.py) file on the mode on ___Only runs the hyperparameter search___. <br>
+- `make train-search:` execute the [mnist_model/training.py](mnist_model/training.py) file on the mode on ___Runs both model training and hyperparameter search___. <br>
+- `make predict` execute the [mnist_model/predict.py](mnist_model/predict.py). <br>
+
+
 
 
 
