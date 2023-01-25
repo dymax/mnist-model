@@ -2,6 +2,7 @@
 Contains a class of the implemented model 'SimpleModel`.
 """
 import os
+from typing import Tuple
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 
@@ -10,7 +11,21 @@ tf.random.set_seed(SEED)
 
 
 class SimpleModel(tf.keras.Model):
-    def __init__(self, image_shape, num_filter_layer_1, num_filter_layer_2, kernel_size_layers, dropout_rate, num_labels):
+    def __init__(self, image_shape: Tuple[int, int],
+                 num_filter_layer_1: int,
+                 num_filter_layer_2: int,
+                 kernel_size_layers: Tuple[int, int],
+                 dropout_rate: float,
+                 num_labels: int):
+        """
+        Convolution 2D classifier model.
+        :param image_shape: input image shape.
+        :param num_filter_layer_1: number filter for the first Conv2d layer.
+        :param num_filter_layer_2: number filter for the second Conv2d layer.
+        :param kernel_size_layers: kernel size for Conv net.
+        :param dropout_rate: drop out rate.
+        :param num_labels: number of classes.
+        """
         super(SimpleModel, self).__init__()
         self.num_filter1 = num_filter_layer_1
         self.kernel_size = kernel_size_layers
