@@ -1,23 +1,56 @@
 import logging
 import os
+from pathlib import Path
+import gzip
 from typing import Dict, Tuple
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+import numpy as np
 import tensorflow as tf
 
 logging.basicConfig(level=logging.INFO)
 
+DATA_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'data')
 
-def load_data() -> Tuple[Dict[str, tf.data.Dataset], Dict[str, int]]:
+
+def load_mnist(path: str, kind: str) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Load MNIST data from `path`. The code copy from the following link:
+    Reference: https://github.com/zalandoresearch/fashion-mnist/blob/master/utils/mnist_reader.py
+    :param path: data source path.
+    :param kind: a string to represent the data tag from source ; 'train' or 'tk10'.
+    :return: A tuple of:
+             - image: a numpy array of image pixels.
+             - labels: a numpy array of labels.
+    """
+    labels_path = os.path.join(path, f'{kind}-labels-idx1-ubyte.gz')
+    images_path = os.path.join(path, f'{kind}-images-idx3-ubyte.gz')
+
+    with gzip.open(labels_path, 'rb') as lbpath:
+        labels = np.frombuffer(lbpath.read(), dtype=np.uint8, offset=8)
+
+    with gzip.open(images_path, 'rb') as imgpath:
+        images = np.frombuffer(imgpath.read(), dtype=np.uint8, offset=16).reshape(len(labels), 784)
+
+    return images, labels
+
+
+def convert_data_to_tf_dataset() -> Tuple[Dict[str, tf.data.Dataset], Dict[str, int]]:
     """
     Load MNIST dataset and convert to tf.data.Data object.
-    :return: A data dictionary of:
-            - train: a collection of x_train and y_train as tf.data.Data object.
-            - test: a collection of x_test and y_test as tf.data.Data object.
+    :return: A tuple:
+            - A data dictionary of:
+                - train: a collection of x_train and y_train as tf.data.Data object.
+                - test: a collection of x_test and y_test as tf.data.Data object.
+            - df_info: a data dictionary contains the information of dataset
     """
     # Load mnist dataset
-    mnist = tf.keras.datasets.mnist
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    train_images, train_labels = load_mnist(DATA_PATH, kind='train')
+    test_images, test_labels = load_mnist(DATA_PATH, kind='t10k')
+    x_train = train_images.reshape(-1, 28, 28)
+    x_test = test_images.reshape(-1, 28, 28)
+    y_train = train_labels
+    y_test = test_labels
 
     # print the number of samples for each train and test
     logging.info(f"Train size {x_train.shape}")
@@ -26,7 +59,7 @@ def load_data() -> Tuple[Dict[str, tf.data.Dataset], Dict[str, int]]:
     data_info = {"train": {"shape": x_train.shape[1:], "num_samples": x_train.shape[0]},
                  "test":  {"shape": x_test.shape[1:], "num_samples": x_test.shape[0]},
                  "num_labels": len(set(y_train))
-                }
+                 }
 
     # Convert data to tf.data.Data object. Combining x_train and y_train as it would be easier to shuffle
     # the data before fitting to the model.
@@ -42,7 +75,7 @@ def load_data() -> Tuple[Dict[str, tf.data.Dataset], Dict[str, int]]:
 
 
 if __name__ == "__main__":
-    dataset, data_info = load_data()
+    dataset, data_info = convert_data_to_tf_dataset()
     print(data_info)
     for val in dataset["train"].take(1).as_numpy_iterator():
         x, y = val
