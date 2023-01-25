@@ -1,5 +1,14 @@
+"""
+The following utility functions are provided:
+- de_serialise: This function converts a tf.data.Dataset in the form of (image, labels) to a list.
+- normalize_pixels: This function normalizes the pixels.
+- load_config_json: This function loads and reads data from a json file.
+- plot_confusion_matrix: This function plots a confusion matrix.
+- misclassified_rate: This function calculates the misclassified rate.
+- plot_misclassified_rate: This function plots the misclassified rate for each class.
+"""
+
 import json
-import os
 from typing import Tuple, Dict, List
 import numpy as np
 import tensorflow as tf
@@ -35,7 +44,14 @@ def load_config_json(file_path: str) -> Dict:
     return data
 
 
-def plot_confusion_matrix(y_true: List[int], y_pred: List[int], class_names: List[str], plot_tag: str):
+def plot_confusion_matrix(y_true: List[int], y_pred: List[int], class_names: List[str], plot_tag: str) -> None:
+    """
+    Plot the confusion matrix.
+    :param y_true: A list target values.
+    :param y_pred: A list of estimated targets as returned by the model.
+    :param class_names: a list of class name
+    :param plot_tag: a string tag that wee want to plot's title
+    """
 
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
@@ -60,6 +76,13 @@ def plot_confusion_matrix(y_true: List[int], y_pred: List[int], class_names: Lis
 
 
 def misclassified_rate(y_true: List[int], y_pred: List[int]) -> List[float]:
+    """
+    Compute the misclassified rate for each class as:
+      misclassified_rate = (FN + FP) / (TP + TN + FP +FN)
+    :param y_true: A list target values.
+    :param y_pred: A list of estimated targets as returned by the model.
+    :return: a list that contains the misclassified rate for each class.
+    """
     cm = confusion_matrix(y_true, y_pred)
 
     # Get the total number of samples per class
@@ -80,6 +103,14 @@ def misclassified_rate(y_true: List[int], y_pred: List[int]) -> List[float]:
 
 
 def plot_misclassified_rate(y_true: List[int], y_pred: List[int], class_names: List[str], plot_tag: str) -> None:
+    """
+    Plot misclassified plot rate as a bar graph for each class.
+    :param y_true: A list target values.
+    :param y_pred: A list of estimated targets as returned by the model.
+    :param class_names:
+    :param plot_tag:
+    :return:
+    """
     # Compute misclassified rate
     misclassification_rate_per_class = misclassified_rate(y_true, y_pred)
 
