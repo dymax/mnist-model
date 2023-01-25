@@ -191,6 +191,8 @@ def objective(params: Dict[str, Union[int, float]],
         mlflow.tensorflow.autolog(every_n_iter=1)
         mlflow.log_param("dropout_rate", params['dropout_rate'])
         mlflow.log_param("learning_rate", params['learning_rate'])
+        mlflow.log_param("num_filter_layer_1", params['num_filter_layer_1'])
+        mlflow.log_param("num_filter_layer_2", params['num_filter_layer_2'])
 
         model = SimpleModel(image_shape=image_shape,
                             dropout_rate=params['dropout_rate'],
