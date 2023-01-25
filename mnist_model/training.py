@@ -1,3 +1,11 @@
+"""
+This script performs the following tasks:
+- train_eval_pipeline: read dataset and shuffle the train dataset and put it into the batch.
+- training_job: train the model on the given seet of parameters.
+- objective: Objective function that will be used to minimise the loss during the training process.
+- run_hyper_search: run hyperparameter search space to find the optimal set of parameters.
+"""
+
 import argparse
 import logging
 import os
