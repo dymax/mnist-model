@@ -53,7 +53,7 @@ class SimpleModel(tf.keras.Model):
         return {"image_shape": self.image_shape,
                 "num_filter_layer_1": self.num_filter1,
                 "num_filter_layer_2": self.num_filter2,
-                "kernel_size_layers": self.kernel_size_layers,
+                "kernel_size_layers": self.kernel_size,
                 "dropout_rate": self.dropout_rate,
                 "num_labels": self.num_labels}
 
