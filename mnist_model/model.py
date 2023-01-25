@@ -10,14 +10,13 @@ tf.random.set_seed(SEED)
 
 
 class SimpleModel(tf.keras.Model):
-    def __init__(self, image_shape, num_filter_layer_1, num_filter_layer_2, kernel_size_layers, dropout_rate, num_units, num_labels):
+    def __init__(self, image_shape, num_filter_layer_1, num_filter_layer_2, kernel_size_layers, dropout_rate, num_labels):
         super(SimpleModel, self).__init__()
         self.num_filter1 = num_filter_layer_1
         self.kernel_size = kernel_size_layers
         self.num_filter2 = num_filter_layer_2
         self.image_shape = image_shape
         self.dropout_rate = dropout_rate
-        self.num_units = num_units
         self.num_labels = num_labels
         self.model = tf.keras.Sequential(
             [
