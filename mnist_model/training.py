@@ -115,7 +115,7 @@ def training_job(save_model_path: str = MODEL_PATH,
     with mlflow.start_run(experiment_id=experiment_id, run_name=mlflow_experiment_name, nested=True):
 
         # Autolog the tensorflow model during the training
-        mlflow.tensorflow.autolog(every_n_iter=2)
+        mlflow.tensorflow.autolog(every_n_iter=1)
 
         model = SimpleModel(image_shape, dropout_rate, num_units, num_labels)
         # Compile the model
@@ -177,7 +177,7 @@ def objective(params: Dict[str, Union[int, float]],
         experiment_id = exp.experiment_id
     with mlflow.start_run(experiment_id=experiment_id, run_name=mlflow_experiment_name, nested=True):
         # Autolog the tensorflow model during the training
-        mlflow.tensorflow.autolog(every_n_iter=2)
+        mlflow.tensorflow.autolog(every_n_iter=1)
         mlflow.log_param("dropout_rate", params['dropout_rate'])
         mlflow.log_param("num_units", params['num_units'])
         mlflow.log_param("learning_rate", params['learning_rate'])
