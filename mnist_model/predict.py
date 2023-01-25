@@ -1,3 +1,10 @@
+"""
+This script performs the following tasks:
+- Loading the trained model: It loads the trained model that has been saved in the outputs folder.
+- Making predictions: It makes predictions for both the train and test datasets.
+- Generating plots: It generates confusion matrix and misclassified rate plots for both the train and test datasets.
+"""
+
 import os
 from typing import List, Tuple
 from pathlib import Path
@@ -13,6 +20,14 @@ CONFIG_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'configs')
 
 
 def make_prediction(loaded_model_path: str, ds: tf.data.Dataset) -> Tuple[List[int], List[int]]:
+    """
+    Make prediction on the provided model and dataset.
+    :param loaded_model_path: file path of the saved model.
+    :param ds: dataset in the form of tf.data.Dataset object in the format (image, labels).
+    :return: A tuple of:
+            - y_true: a list target values.
+            - y_pred: a list of estimated targets as returned by the model.
+    """
     loaded_model = tf.keras.models.load_model(loaded_model_path)
     # Normalise the train dataset
     ds = ds.map(normalize_pixels)
