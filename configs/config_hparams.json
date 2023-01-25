@@ -4,5 +4,5 @@
   "learning_rate": 0.0007693025570687099,
   "dropout_rate": 0.07464309230311394,
   "batch_size": 128,
-  "max_eval": 10
+  "max_eval": 30
 }
