@@ -1,5 +1,5 @@
 # mnist-model
-This repository contains the implementation of a shallow neural network to classify the fashion MNIST dataset. The code is structured into several files that handle different aspects of the project, such as data loading, model implementation, training, prediction, and logging.
+This repository contains the implementation of a Convolutional networks (2 layers of ConvNet used) to classify the fashion MNIST dataset. The code is structured into several files that handle different aspects of the project, such as data loading, model implementation, training, prediction, and logging.
 
 ## Code structure
 [mnist_model/data_loader.py](mnist_model/data_loader.py): converts the MNIST dataset to a tf.data.Dataset object. <br>
@@ -35,6 +35,24 @@ Note: we can check whether the port 5000 is free or not by running the following
 ```commandline
 lsof -i:5000
 ```
+
+# Description of [configs/config_hparams.json](configs/config_hparams.json) 
+Contains set of parameters to run the model
+- `num_epochs`: number of epochs to train the model.
+- `learning_rate`: learning rate of the optimiser.
+- `dropout_rate`: dropout rate for the dropout layer.
+- `batch_size`: batch size used to train the model.
+- `max_eval`: number of iterations to perform the hyperparameter tuning process, used by hyperopt.
+- `num_filter_layer_1`: number of filter for the Conv2D at the first layer.
+- `num_filter_layer_2`: number of filter for the Conv2D at the second layer.
+- `kernel_size_layers`: kernel size that has been used by the model for the Conv2D layers.
+
+Note: The model only provides the hyperparameter search for a few parameters for the purpose of the demo. The following parameters have been considered for search:
+- `num_filter_layer_1`
+- `num_filter_layer_2`
+- `dropout_rate`
+- `learning_rate`
+
 ## Run [training.py](mnist_model/training.py)
 The provided script can perform two tasks:
 1. Train the model using the set of parameters defined in [configs/config_hparams.json](configs/config_hparams.json).
