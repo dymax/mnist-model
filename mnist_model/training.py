@@ -102,7 +102,7 @@ def training_job(save_model_path: str = MODEL_PATH,
     image_shape = data_info['train']["shape"]
     num_labels = data_info["num_labels"]
 
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="../logs")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"{OUTPUT_PATH}/logs")
     # Define mlflow experiment name
     mlflow_experiment_name = f"model-training"
     # Setup mlflow experiment
