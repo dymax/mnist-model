@@ -2,7 +2,6 @@
 Contains a class of the implemented model 'SimpleModel`.
 """
 import os
-import argparse
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 
@@ -40,22 +39,4 @@ class SimpleModel(tf.keras.Model):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
-
-
-def main():
-    parser = argparse.ArgumentParser(description='SimpleModel')
-    parser.add_argument('--image_shape', type=int, nargs='+', required=True, help='Shape of input images')
-    parser.add_argument('--dropout_rate', type=float, default=0.5, help='Dropout rate for the model')
-    parser.add_argument('--num_units', type=int, default=128, help='Number of units in the dense layer')
-    parser.add_argument('--num_labels', type=int, required=True, help='Number of labels in the output')
-
-    args = parser.parse_args()
-
-    model = SimpleModel(args.image_shape, args.dropout_rate, args.num_units, args.num_labels)
-    return model
-
-
-if __name__ == "__main__":
-    import pdb
-    model = main()
 
