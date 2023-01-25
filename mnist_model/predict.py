@@ -6,7 +6,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
 
-from mnist_model.data_loader import load_data
+from mnist_model.data_loader import convert_data_to_tf_dataset
 from mnist_model.utils import normalize_pixels, de_serialise, load_config_json, plot_confusion_matrix, plot_misclassified_rate
 
 OUTPUT_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'outputs')
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     model_path = os.path.join(OUTPUT_PATH, "trained_model", "model")
 
     # Load data from data loader
-    dataset, data_info = load_data()
+    dataset, data_info = convert_data_to_tf_dataset()
     # Make prediction on batch of data
     y_train, y_train_pred = make_prediction(loaded_model_path=model_path, ds=dataset["train"])
     y_test, y_test_pred = make_prediction(loaded_model_path=model_path, ds=dataset["test"])
