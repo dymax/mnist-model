@@ -14,9 +14,14 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import numpy as np
 import tensorflow as tf
 
+from mnist_model.utils import load_config_json
+
 logging.basicConfig(level=logging.INFO)
 
-DATA_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'data')
+# Get data path from the config_file
+CONFIG_PATH = os.path.join(Path(os.path.dirname(__file__)).parent, 'configs', 'config_path.json')
+config_path = load_config_json(CONFIG_PATH)
+DATA_PATH = config_path["DATA_PATH"]
 
 
 def load_mnist(path: str, kind: str) -> Tuple[np.ndarray, np.ndarray]:
