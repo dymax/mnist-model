@@ -283,8 +283,6 @@ if __name__ == "__main__":
                          batch_size=params["batch_size"],
                          kernel_size_layers=params["kernel_size_layers"])
 
-
-
     elif args.option == 'train':
         # Only train a model
         training_job(dropout_rate=params["dropout_rate"],
