@@ -58,6 +58,9 @@ def convert_data_to_tf_dataset() -> Tuple[Dict[str, tf.data.Dataset], Dict[str, 
     y_train = train_labels
     y_test = test_labels
 
+    x_train = np.expand_dims(x_train, -1)
+    x_test = np.expand_dims(x_test, -1)
+
     # print the number of samples for each train and test
     logging.info(f"Train size {x_train.shape}")
     logging.info(f"Test size {x_test.shape}")
