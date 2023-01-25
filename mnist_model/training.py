@@ -215,7 +215,7 @@ def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int):
     # Define the search space. This is only used for the purpose of the demo.
     # Only learning rate, dropout ratio and number of neurons considered as hyperparameter
     params = {'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(0.1)),
-              'num_units': hp.quniform('num_units', 16, 256, 16),
+              'num_units': hp.quniform('num_units', 16, 512, 16),
               'dropout_rate': hp.uniform('dropout_rate', 0, 0.5)}
     # Create the objective function that wants to be minimised
     obj = partial(objective,
