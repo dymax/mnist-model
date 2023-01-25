@@ -1,5 +1,5 @@
 {
-  "num_epochs":  10,
+  "num_epochs":  20,
   "num_units":  240,
   "learning_rate": 0.0007693025570687099,
   "dropout_rate": 0.07464309230311394,
