@@ -1,3 +1,9 @@
+"""
+This script performs the following tasks:
+- load_mnist: load mnist dataset into numpy array
+- convert_data_to_tf_dataset: convert the mnist data to tf.data.Dataset object.
+"""
+
 import logging
 import os
 from pathlib import Path
