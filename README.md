@@ -36,7 +36,7 @@ Note: we can check whether the port 5000 is free or not by running the following
 lsof -i:5000
 ```
 
-# Description of [configs/config_hparams.json](configs/config_hparams.json) 
+## Description of [configs/config_hparams.json](configs/config_hparams.json) 
 Contains set of parameters to run the model
 - `num_epochs`: number of epochs to train the model.
 - `learning_rate`: learning rate of the optimiser.
