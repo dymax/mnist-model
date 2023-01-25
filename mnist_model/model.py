@@ -10,25 +10,30 @@ tf.random.set_seed(SEED)
 
 
 class SimpleModel(tf.keras.Model):
-    def __init__(self, image_shape, dropout_rate, num_units, num_labels):
+    def __init__(self, image_shape, num_filter_layer_1, num_filter_layer_2, kernel_size_layers, dropout_rate, num_units, num_labels):
         super(SimpleModel, self).__init__()
+        self.num_filter1 = num_filter_layer_1
+        self.kernel_size = kernel_size_layers
+        self.num_filter2 = num_filter_layer_2
         self.image_shape = image_shape
         self.dropout_rate = dropout_rate
         self.num_units = num_units
         self.num_labels = num_labels
-        initializer = tf.keras.initializers.GlorotUniform(seed=SEED)
-        self.flatten = tf.keras.layers.Flatten(input_shape=self.image_shape)
-        self.dropout = tf.keras.layers.Dropout(rate=self.dropout_rate, seed=SEED)  # adding a dropout to minimize the risk of overfitting
-        self.dense1 = tf.keras.layers.Dense(units=self.num_units, activation='relu', kernel_initializer=initializer)
-        self.dense2 = tf.keras.layers.Dense(self.num_labels, kernel_initializer=initializer)
-        self.softmax = tf.keras.layers.Softmax()
+        self.model = tf.keras.Sequential(
+            [
+                tf.keras.Input(shape=self.image_shape),
+                tf.keras.layers.Conv2D(self.num_filter1, kernel_size=self.kernel_size, activation="relu"),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Conv2D(self.num_filter2, kernel_size=self.kernel_size , activation="relu"),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dropout(self.dropout_rate),
+                tf.keras.layers.Dense(self.num_labels, activation="softmax"),
+            ]
+        )
 
     def call(self, input_tensors, training=False):
-        x = self.flatten(input_tensors)
-        x = self.dropout(x, training=training)
-        x = self.dense1(x)
-        x = self.dense2(x)
-        return self.softmax(x)
+        return self.model(input_tensors, training=training)
 
     def get_config(self):
         return {"image_shape": self.image_shape,
