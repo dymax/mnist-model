@@ -35,7 +35,7 @@ def load_config_json(file_path: str) -> Dict:
     return data
 
 
-def plot_confusion_matrix(y_true: List[int], y_pred: List[int], class_names: List[str]):
+def plot_confusion_matrix(y_true: List[int], y_pred: List[int], class_names: List[str], plot_tag: str):
 
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
@@ -55,7 +55,7 @@ def plot_confusion_matrix(y_true: List[int], y_pred: List[int], class_names: Lis
     ax.yaxis.set_ticklabels(class_names, fontsize=8)
     plt.yticks(rotation=0)
 
-    plt.title('Confusion Matrix', fontsize=12)
+    plt.title(f'Confusion Matrix on {plot_tag}', fontsize=12)
     plt.show()
 
 
@@ -79,7 +79,7 @@ def misclassified_rate(y_true: List[int], y_pred: List[int]) -> List[float]:
     return misclassification_rate_per_class
 
 
-def plot_misclassified_rate(y_true: List[int], y_pred: List[int], class_names: List[str]) -> None:
+def plot_misclassified_rate(y_true: List[int], y_pred: List[int], class_names: List[str], plot_tag: str) -> None:
     # Compute misclassified rate
     misclassification_rate_per_class = misclassified_rate(y_true, y_pred)
 
@@ -88,7 +88,7 @@ def plot_misclassified_rate(y_true: List[int], y_pred: List[int], class_names: L
     plt.bar(class_names, misclassification_rate_per_class)
     plt.xlabel('Classes')
     plt.ylabel('Misclassification Rate')
-    plt.title('Misclassification Rate per Class')
+    plt.title(f'Misclassification Rate per Class on {plot_tag}')
     plt.xticks(rotation=45, fontsize=8)
     plt.show()
 
