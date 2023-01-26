@@ -7,7 +7,7 @@ This repository contains the implementation of a Convolutional networks (2 layer
 [mnist_model/model.py](mnist_model/model.py): contains a class for the implemented model. <br>
 [mnist_model/training.py](mnist_model/training.py): contains scripts for training the model and performing hyperparameter search using Bayesian optimization and mlflow for tracking the training and tuning process. <br>
 [mnist_model/predict.py](mnist_model/predict.py): loads the trained model and makes predictions and plots confusion matrix and miscalssified samples. <br>
-[mnist_model/model_runer.py](mnist_model/model_runer.py): a script that serves as a runner for the "model.py" file, where the class "SimpleModel" is defined. It shows how to build, train and evluatte the model.
+[mnist_model/model_runer.py](mnist_model/model_runer.py): a script that serves as a runner for the "model.py" file, where the class "SimpleModel" is defined. It shows how to build, train and evluatte the model. <br>
 [outputs/meas-energy-mlflow.db](outputs/meas-energy-mlflow.db): is a database containing information logged of mlflow tracking during training and hyperparameter search. <br>
 [outputs/trained_model](outputs/trained_model): directory contains the trained model. <br>
 [configs/config_path.json](configs/config_path.json): contains path to data source. <br>
