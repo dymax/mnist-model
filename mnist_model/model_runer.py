@@ -45,6 +45,7 @@ model = SimpleModel(image_shape=data_info['train']["shape"],
                     num_filter_layer_2=params["num_filter_layer_1"],
                     kernel_size_layers=params["kernel_size_layers"],
                     dropout_rate=params["dropout_rate"],
+                    num_units=params["num_units"],
                     num_labels=data_info["num_labels"])
 
 # Compile the model
