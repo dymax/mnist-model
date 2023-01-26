@@ -93,6 +93,7 @@ The provided [Makefile](Makefile)  contains a set of command lines that can be u
 - `make search:` runs the [mnist_model/training.py](mnist_model/training.py) script in ___Only runs the hyperparameter search___. <br>
 - `make train-search:` runs the [mnist_model/training.py](mnist_model/training.py) script in ___Runs both model training and hyperparameter search___. <br>
 - `make predict` runs the [mnist_model/predict.py](mnist_model/predict.py) script. <br>
+- `model-runer` runes the [mnist_model/model_runer.py](mnist_model/model_runer.py) script.
 
 
 
