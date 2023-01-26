@@ -16,6 +16,7 @@ class SimpleModel(tf.keras.Model):
                  num_filter_layer_2: int,
                  kernel_size_layers: Tuple[int, int],
                  dropout_rate: float,
+                 num_units: int,
                  num_labels: int):
         """
         Convolution 2D classifier model.
@@ -24,6 +25,7 @@ class SimpleModel(tf.keras.Model):
         :param num_filter_layer_2: number filter for the second Conv2d layer.
         :param kernel_size_layers: kernel size for Conv net.
         :param dropout_rate: drop out rate.
+        :param num_units: number of units for the dense layer.
         :param num_labels: number of classes.
         """
         super(SimpleModel, self).__init__()
@@ -32,6 +34,7 @@ class SimpleModel(tf.keras.Model):
         self.num_filter2 = num_filter_layer_2
         self.image_shape = image_shape
         self.dropout_rate = dropout_rate
+        self.num_units = num_units
         self.num_labels = num_labels
         self.model = tf.keras.Sequential(
             [
@@ -42,6 +45,7 @@ class SimpleModel(tf.keras.Model):
                 tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dropout(self.dropout_rate),
+                tf.keras.layers.Dense(128, activation="relu"),
                 tf.keras.layers.Dense(self.num_labels, activation="softmax"),
             ]
         )
@@ -55,6 +59,7 @@ class SimpleModel(tf.keras.Model):
                 "num_filter_layer_2": self.num_filter2,
                 "kernel_size_layers": self.kernel_size,
                 "dropout_rate": self.dropout_rate,
+                "num_units": self.num_units,
                 "num_labels": self.num_labels}
 
     @classmethod
