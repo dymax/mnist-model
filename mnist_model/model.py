@@ -45,7 +45,7 @@ class SimpleModel(tf.keras.Model):
                 tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dropout(self.dropout_rate),
-                tf.keras.layers.Dense(128, activation="relu"),
+                tf.keras.layers.Dense(self.num_units, activation="relu"),
                 tf.keras.layers.Dense(self.num_labels, activation="softmax"),
             ]
         )
