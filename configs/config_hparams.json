@@ -1,7 +1,7 @@
 {
-  "num_epochs":  10,
-  "learning_rate": 0.0007693025570687099,
-  "dropout_rate": 0.07464309230311394,
+  "num_epochs":  15,
+  "learning_rate": 0.001,
+  "dropout_rate": 0.3,
   "batch_size": 128,
   "max_eval": 1,
   "num_filter_layer_1": 32,
