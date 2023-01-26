@@ -10,6 +10,7 @@ import argparse
 import ast
 import logging
 import os
+import random
 from pathlib import Path
 from typing import Tuple, Dict, List, Union
 from functools import partial
@@ -44,8 +45,11 @@ mlflow.set_tracking_uri(f"sqlite:///{OUTPUT_PATH}/meas-energy-mlflow.db")
 
 tf.get_logger().setLevel('ERROR')
 
+# Set the random seed for tensorflow, numpy and random for consistency.
 SEED = 100
 tf.random.set_seed(SEED)
+np.random.seed(SEED)
+random.seed(SEED)
 
 
 def train_eval_pipeline(batch_size: int) -> Tuple[tf.data.Dataset, tf.data.Dataset, Dict[str, int]]:
