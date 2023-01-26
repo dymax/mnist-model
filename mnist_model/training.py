@@ -248,7 +248,7 @@ def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int, kernel_siz
               'dropout_rate': hp.uniform('dropout_rate', 0, 0.5),
               'num_filter_layer_1': hp.quniform('num_filter_layer_1', 16, 128, 16),
               'num_filter_layer_2': hp.quniform('num_filter_layer_2', 16, 128, 16),
-              'num_units': hp.quniform('num_filter_layer_2', 32, 256, 32),
+              'num_units': hp.quniform('num_units', 32, 256, 32),
               }
     # Create the objective function that wants to be minimised
     obj = partial(objective,
