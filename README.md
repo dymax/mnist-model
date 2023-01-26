@@ -48,6 +48,7 @@ Contains set of parameters to run the model
 - `num_filter_layer_1`: number of filter for the Conv2D at the first layer.
 - `num_filter_layer_2`: number of filter for the Conv2D at the second layer.
 - `kernel_size_layers`: kernel size that has been used by the model for the Conv2D layers.
+- `num_units`: number of units of the dense layer.
 
 Note: The model only provides the hyperparameter search for a few parameters for the purpose of the demo. The following parameters have been considered for search:
 - `num_filter_layer_1`

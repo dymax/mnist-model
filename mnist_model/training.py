@@ -91,6 +91,7 @@ def training_job(save_model_path: str = MODEL_PATH,
                  dropout_rate: float = 0.3,
                  learning_rate: float = 0.001,
                  batch_size: int = 128,
+                 num_units: int = 128,
                  num_epochs: int = 10) -> Tuple[SimpleModel, Dict[str, List[float]]]:
     """
     Train and eval model.
@@ -101,6 +102,7 @@ def training_job(save_model_path: str = MODEL_PATH,
     :param dropout_rate: drop out rate, default is 0.3.
     :param learning_rate: learning rate, default is 0.001.
     :param batch_size: batch size for train and test dataset, default is set to 128.
+    :param num_units: number of units for the dense layer.
     :param num_epochs: number of epochs, default is 10.
     :return: A tuple:
              - model: A trained model.
@@ -125,11 +127,17 @@ def training_job(save_model_path: str = MODEL_PATH,
 
         # Autolog the tensorflow model during the training
         mlflow.tensorflow.autolog(every_n_iter=1)
+        mlflow.log_param("dropout_rate", params['dropout_rate'])
+        mlflow.log_param("learning_rate", params['learning_rate'])
+        mlflow.log_param("num_filter_layer_1", params['num_filter_layer_1'])
+        mlflow.log_param("num_filter_layer_2", params['num_filter_layer_2'])
+        mlflow.log_param("num_units", params['num_units'])
         model = SimpleModel(image_shape,
                             num_filter_layer_1,
                             num_filter_layer_2,
                             kernel_size_layers,
                             dropout_rate,
+                            num_units,
                             num_labels)
         # Compile the model
         model.compile(
@@ -203,6 +211,7 @@ def objective(params: Dict[str, Union[int, float]],
                             num_filter_layer_1=params['num_filter_layer_1'],
                             num_filter_layer_2=params['num_filter_layer_2'],
                             kernel_size_layers=kernel_size_layers,
+                            num_units=params["num_units"],
                             num_labels=num_labels)
 
 
@@ -239,6 +248,7 @@ def run_hyper_search(max_eval: int, num_epochs: int, batch_size: int, kernel_siz
               'dropout_rate': hp.uniform('dropout_rate', 0, 0.5),
               'num_filter_layer_1': hp.quniform('num_filter_layer_1', 16, 128, 16),
               'num_filter_layer_2': hp.quniform('num_filter_layer_2', 16, 128, 16),
+              'num_units': hp.quniform('num_units', 32, 256, 32),
               }
     # Create the objective function that wants to be minimised
     obj = partial(objective,
@@ -282,6 +292,7 @@ if __name__ == "__main__":
                      kernel_size_layers=params["kernel_size_layers"],
                      learning_rate=params["learning_rate"],
                      batch_size=params["batch_size"],
+                     num_units=params["num_units"],
                      num_epochs=params["num_epochs"])
 
         run_hyper_search(max_eval=params["max_eval"],
@@ -297,6 +308,7 @@ if __name__ == "__main__":
                      kernel_size_layers=params["kernel_size_layers"],
                      learning_rate=params["learning_rate"],
                      batch_size=params["batch_size"],
+                     num_units=params["num_units"],
                      num_epochs=params["num_epochs"])
 
     elif args.option == 'search':
