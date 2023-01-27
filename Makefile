@@ -17,6 +17,9 @@ train-search:
 predict:
 	python -m mnist_model.predict
 
+run-test:
+	pytest -v tests/.
+
 
 
 
