@@ -13,6 +13,7 @@ This repository contains the implementation of a Convolutional networks (2 layer
 [configs/config_path.json](configs/config_path.json): contains path to data source. <br>
 [configs/labels.json](configs/labels.json): contains class names mapped to integer representations. <br>
 [configs/config_hparams.json](configs/config_hparams.json): contains parameters used for training the model. <br>
+[tests/test_model.py](tests/test_model.py): unit test to test the implemented model. <br>
 [requirement.txt](requirement.txt): is a list of requirements that must be installed to run the provided code.
 
 ## Local setup 
@@ -86,6 +87,16 @@ make predict
 python -m mnist_model.predict
 ```
 
+## Run [tests](tests/test_model.py)
+To run the script, please take the following steps:
+- Navigate to the `mnist-model` repository and activate the virtual environment.
+- Run one of the following commands to visualize the model performance:
+```commandline
+make run-test
+```
+```commandline
+pytest -v tests/.
+```
 
 ## Run makefile 
 The provided [Makefile](Makefile)  contains a set of command lines that can be used to more easily execute the provided python scripts. The `Makefile` includes the following commands:
@@ -94,7 +105,8 @@ The provided [Makefile](Makefile)  contains a set of command lines that can be u
 - `make search:` runs the [mnist_model/training.py](mnist_model/training.py) script in ___Only runs the hyperparameter search___. <br>
 - `make train-search:` runs the [mnist_model/training.py](mnist_model/training.py) script in ___Runs both model training and hyperparameter search___. <br>
 - `make predict` runs the [mnist_model/predict.py](mnist_model/predict.py) script. <br>
-- `model-runer` runes the [mnist_model/model_runer.py](mnist_model/model_runer.py) script.
+- `make model-runer` runes the [mnist_model/model_runer.py](mnist_model/model_runer.py) script. <br>
+- `make run-test` run test suits. <br>
 
 
 
